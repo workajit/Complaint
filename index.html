@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citizen Complaint Form</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:500px;
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#333;
+}
+
+.form-group{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:bold;
+    color:#444;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    font-size:14px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#007bff;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+.preview{
+    margin-top:10px;
+    max-width:100%;
+    border-radius:8px;
+}
+
+.error{
+    color:red;
+    margin-bottom:10px;
+}
+
+.success-screen{
+    text-align:center;
+}
+
+.success-screen h2{
+    color:green;
+    margin-bottom:15px;
+}
+
+.details{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:8px;
+    margin:15px 0;
+    text-align:left;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="formSection">
+        <h1>Complaint Form</h1>
+
+        <div class="error" id="errorMsg"></div>
+
+        <form id="complaintForm">
+
+            <div class="form-group">
+                <label>Issue Type</label>
+                <select id="issueType">
+                    <option value="">Select Issue</option>
+                    <option>Road Damage</option>
+                    <option>Water Leakage</option>
+                    <option>Street Light Issue</option>
+                    <option>Garbage Collection</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="description" rows="4"
+                placeholder="Enter issue description"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="location"
+                placeholder="Enter location">
+            </div>
+
+            <div class="form-group">
+                <label>Upload Photo (Optional)</label>
+                <input type="file" id="photo" accept="image/*">
+                <img id="preview" class="preview" style="display:none;">
+            </div>
+
+            <button type="submit">Submit Complaint</button>
+
+        </form>
+    </div>
+
+    <div id="successSection" style="display:none;">
+        <div class="success-screen">
+            <h2>Complaint Submitted Successfully!</h2>
+
+            <div class="details" id="complaintDetails"></div>
+
+            <button onclick="submitAnother()">
+                Submit Another Complaint
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+let photoData = "";
+
+document.getElementById("photo").addEventListener("change", function(e){
+
+    const file = e.target.files[0];
+
+    if(file){
+        const reader = new FileReader();
+
+        reader.onload = function(event){
+            photoData = event.target.result;
+
+            const preview = document.getElementById("preview");
+            preview.src = photoData;
+            preview.style.display = "block";
+        };
+
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById("complaintForm")
+.addEventListener("submit", function(e){
+
+    e.preventDefault();
+
+    const issueType = document.getElementById("issueType").value;
+    const description = document.getElementById("description").value.trim();
+    const location = document.getElementById("location").value.trim();
+
+    const errorMsg = document.getElementById("errorMsg");
+
+    if(!issueType || !description || !location){
+        errorMsg.textContent =
+        "Please fill all required fields.";
+        return;
+    }
+
+    errorMsg.textContent = "";
+
+    const complaintId =
+    "CMP" + Date.now().toString().slice(-6);
+
+    const complaint = {
+        complaintId,
+        issueType,
+        description,
+        location,
+        photo: photoData,
+        submittedAt: new Date().toLocaleString()
+    };
+
+    let complaints =
+    JSON.parse(localStorage.getItem("complaints")) || [];
+
+    complaints.push(complaint);
+
+    localStorage.setItem(
+        "complaints",
+        JSON.stringify(complaints)
+    );
+
+    document.getElementById("formSection").style.display="none";
+    document.getElementById("successSection").style.display="block";
+
+    document.getElementById("complaintDetails").innerHTML = `
+        <p><b>Complaint ID:</b> ${complaintId}</p>
+        <p><b>Issue Type:</b> ${issueType}</p>
+        <p><b>Location:</b> ${location}</p>
+        <p><b>Submitted:</b> ${complaint.submittedAt}</p>
+    `;
+});
+
+function submitAnother(){
+
+    document.getElementById("complaintForm").reset();
+
+    document.getElementById("preview").style.display = "none";
+
+    photoData = "";
+
+    document.getElementById("formSection").style.display="block";
+    document.getElementById("successSection").style.display="none";
+}
+
+</script>
+
+</body>
+              </html>
